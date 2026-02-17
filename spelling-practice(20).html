@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .practice-view h1, .results-view h1 {
+            display: none;
+        }
+
+        .stats {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-row {
+            margin: 8px 0;
+        }
+
+        .stats span {
+            margin: 0 10px;
+            padding: 5px 15px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            display: inline-block;
+            transition: transform 0.2s ease-out;
+        }
+
+        .stats span.pulse {
+            animation: statPulse 0.4s ease-out;
+        }
+
+        @keyframes statPulse {
+            0% { 
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.15);
+            }
+            100% { 
+                transform: scale(1);
+            }
+        }
+
+        .correct {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .group-selection-view {
+            transition: opacity 0.3s;
+        }
+
+        .group-selection-title {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-align: center;
+        }
+
+        .group-selection-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .group-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .group-checkbox:hover {
+            background: #f3f4f6;
+            border-color: #667eea;
+        }
+
+        .group-checkbox.selected {
+            background: #e0e7ff;
+            border-color: #667eea;
+        }
+
+        .group-checkbox.missed-words {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .group-checkbox.missed-words:hover {
+            background: #fde68a;
+        }
+
+        .group-checkbox.missed-words.selected {
+            background: #fcd34d;
+            border-color: #d97706;
+        }
+
+        .clear-missed-btn {
+            padding: 8px 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: all 0.2s;
+            margin-left: 10px;
+        }
+
+        .clear-missed-btn:hover {
+            background: #dc2626;
+        }
+
+        .group-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .group-label {
+            flex: 1;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .group-description {
+            font-size: 0.85em;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .select-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .select-all-btn, .select-none-btn {
+            padding: 10px 20px;
+            background: #e5e7eb;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .select-all-btn:hover, .select-none-btn:hover {
+            background: #d1d5db;
+        }
+
+        .go-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px 60px;
+            font-size: 1.4em;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .go-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .go-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .practice-view, .results-view {
+            transition: opacity 0.3s;
+        }
+
+        .results-screen {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .results-title {
+            font-size: 2em;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            min-height: 0;
+        }
+
+        .word-comparison {
+            background: #f9fafb;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            max-width: 100%;
+        }
+
+        .your-answer, .correct-answer {
+            color: #666;
+            font-family: 'Courier New', monospace;
+            font-size: 1.8em;
+            min-height: 50px;
+            margin-top: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .word-container {
+            display: inline-block;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        /* Responsive font sizing for long words */
+        @media (max-width: 600px) {
+            .your-answer, .correct-answer {
+                font-size: 1.4em;
+            }
+        }
+
+        .your-answer, .correct-answer {
+            margin: 15px 0;
+            font-size: 1.3em;
+        }
+
+        .answer-label {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+
+        .your-answer, .correct-answer {
+            color: #666;
+            font-family: 'Courier New', monospace;
+            font-size: 1.8em;
+            min-height: 50px;
+            margin-top: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .word-container {
+            display: inline-block;
+            text-align: left;
+        }
+
+        .letter {
+            display: inline-block;
+            margin: 0 2px;
+            animation: letterPop 0.2s ease-out;
+        }
+
+        .letter.correct-letter {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .letter.incorrect-letter {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .letter.missing-letter {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+
+        @keyframes letterPop {
+            0% { 
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .correct-answer {
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            font-size: 1.8em;
+            min-height: 50px;
+            margin-top: 5px;
+        }
+
+        .next-word-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .next-word-btn.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .next-word-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .word-display {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .speak-btn, .define-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin: 0 10px;
+        }
+
+        .speak-btn.hidden-initial, .define-btn.hidden-initial {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .define-btn {
+            background: #10b981;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .speak-btn:hover {
+            transform: scale(1.1);
+            background: #764ba2;
+        }
+
+        .define-btn:hover {
+            transform: scale(1.1);
+            background: #059669;
+        }
+
+        .speak-btn:active, .define-btn:active {
+            transform: scale(0.95);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .correct-answer.hidden-initial {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: opacity 0.3s, height 0.3s;
+        }
+
+        .correct-answer.show {
+            opacity: 1;
+            height: auto;
+        }
+
+        .input-container {
+            margin: 30px 0;
+            transition: opacity 0.3s;
+            position: relative;
+        }
+
+        .input-container.hidden-initial {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mic-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-btn:hover {
+            background: #764ba2;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .mic-btn.listening {
+            background: #ef4444;
+            animation: pulse-mic 1s infinite;
+        }
+
+        @keyframes pulse-mic {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
+
+        input {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.5em;
+            border: 3px solid #e5e7eb;
+            border-radius: 15px;
+            text-align: center;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+            transition: opacity 0.3s;
+        }
+
+        .buttons.hidden-initial {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .check-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .check-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .results-screen {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .results-content {
+            flex: 1;
+        }
+
+        .stats-bottom {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            min-height: 40px;
+            padding: 10px;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+
+        .feedback.correct {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .feedback.incorrect {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .completion-message {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .completion-title {
+            font-size: 3em;
+            margin-bottom: 20px;
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        .completion-text {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .completion-subtext {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .celebration {
+            font-size: 2em;
+            animation: bounce 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .word-info {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Spelling Bee ✨</h1>
+        
+        <!-- Group Selection View -->
+        <div class="group-selection-view" id="groupSelectionView">
+            <div class="group-selection-title">Select word groups</div>
+            
+            <div class="select-buttons">
+                <button class="select-all-btn" id="selectAllBtn">Select All</button>
+                <button class="select-none-btn" id="selectNoneBtn">Select None</button>
+            </div>
+
+            <div class="groups-grid" id="groupsGrid">
+                <!-- Groups will be dynamically added here -->
+            </div>
+
+            <button class="go-btn" id="goBtn" disabled>Go!</button>
+        </div>
+
+        <!-- Practice View -->
+        <div class="practice-view hidden" id="practiceView">
+            <div class="word-display">
+                <div class="button-group">
+                    <button class="speak-btn hidden-initial" id="speakBtn" title="Click to hear the word">🔊</button>
+                    <button class="define-btn hidden-initial" id="defineBtn" title="Click to hear the definition">📖</button>
+                </div>
+                <div class="word-info">Click 🔊 to hear the word or 📖 for the definition!</div>
+            </div>
+
+            <div class="input-container hidden-initial" id="inputContainer">
+                <input 
+                    type="text" 
+                    id="answerInput" 
+                    placeholder="Type the word here..."
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <button class="mic-btn" id="micBtn" title="Click to speak your answer">🎤</button>
+            </div>
+
+            <div class="buttons hidden-initial" id="buttonsContainer">
+                <button class="check-btn" id="checkBtn">Check Answer</button>
+            </div>
+        </div>
+
+        <!-- Results View -->
+        <div class="results-view hidden" id="resultsView">
+            <div class="results-screen">
+                <div class="results-content">
+                    <div class="word-comparison">
+                        <div class="answer-label">You spelled</div>
+                        <div class="your-answer" id="yourAnswer"></div>
+                        <div class="answer-label" id="correctLabel" style="opacity: 0;">Actual spelling</div>
+                        <div class="correct-answer hidden-initial" id="correctAnswer"></div>
+                    </div>
+
+                    <div class="results-title" id="resultsTitle" style="opacity: 0; transition: opacity 0.3s;"></div>
+                </div>
+
+                <div class="stats-bottom">
+                    <div class="stats">
+                        <div class="stats-row">
+                            <span>✅ Correct: <span class="correct" id="correctCount">0</span></span>
+                        </div>
+                        <div class="stats-row">
+                            <span>❌ Incorrect: <span class="incorrect" id="incorrectCount">0</span></span>
+                        </div>
+                        <div class="stats-row">
+                            <span>📊 Progress: <span id="progressCount">0/0</span></span>
+                        </div>
+                    </div>
+                    
+                    <button class="next-word-btn hidden" id="nextWordBtn">Next Word</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            "tags", "end", "deck", "stuck", "snug", "fish", "hold", "mind", "stay", "scrub", "draw", "brown", "cozy", "tint", "milk", "yawn", "tank", "want", "crowd", "pond", "skirt", "shark", "quilt", "twig", "staff", "comfy", "stretch", "tight", "candy", "scrunch", "ruby", "close", "tackle", "wire", "skater", "giant", "bucket", "chance", "basket", "tender", "paste", "melon", "farmer", "parent", "tail", "hockey", "slime", "insect", "teeth", "shortcut", "bait", "lure", "cluster", "forest", "hollow", "spinning", "baffling", "sizzling", "hoist", "search", "remind", "mango", "coral", "jangle", "shimmer", "blossoms", "swampy", "studded", "focus", "distress", "lesson", "moment", "ajar", "basil", "triple", "satin", "ahoy", "signal", "answer", "shuffle", "dollop", "minnows", "silver", "before", "circus", "writing", "kitchen", "sugar", "awkward", "seep", "sweet", "wheels", "faint", "fruit", "roam", "goat", "woozy", "limb", "ahead", "señor", "unicorn", "faraway", "heater", "pirate", "understand", "wooden", "leaning", "breakfast", "window", "acrobat", "message", "chocolate", "forepaw", "elephant", "hedgehog", "recipe", "garbage", "surprise", "mermaid", "bombarded", "disability", "incredible", "leather", "countess", "nervous", "peppercorn", "cartwheel", "raise", "weather", "zooming", "attacked", "turnout", "eaten", "streetlights", "journey", "courtyard", "shouting", "asleep", "curious", "dinosaur", "brilliant", "vacuum", "gorgeous", "monsoon", "dangerous", "avocado", "valentine", "February", "formation", "especially", "hesitates", "scorchers", "scavenger", "fragments", "deflated", "unleash", "ration", "cosmetics", "crawdad", "frustration", "unruly", "mascot", "aroma", "moustache", "mustache", "artifacts", "artefacts", "perfumes", "sinister", "tuxedo", "discoveries", "lurches", "language", "prognosis", "Buffalo", "sequins", "gallop", "fabulous", "lanky", "fluently", "mysterious", "brandished", "sardines", "anguish", "conical", "rickety", "lilt", "pediatric", "porridge", "democracy", "rummage", "beige", "ancestral", "grimace", "gaunt", "enormous", "geranium", "nautical", "dubious", "ebony", "foreign", "paltry", "verdict", "garbled", "encourage", "imitation", "miniature", "receptionist", "preamble", "plausible", "reprimanding", "commotion", "oblivion", "immigrants", "steeple", "spectators", "lanyards", "suspicious", "parchment", "ramshackle", "fugitive", "heron", "dissolving", "nomad", "billowed", "skewer", "Berlin", "lunacy", "conjure", "bracken", "noggin", "neon", "rakish", "hypnosis", "rotunda", "gusto", "toiletries", "gleaned", "jeered", "winsome", "prattling", "galore", "emporium", "atrium", "eccentric", "savant", "almanac", "hippies", "samosas", "campaign", "pistachio", "mosque", "zombielike", "warlock", "colossus", "convulsively", "dimensional", "garishly", "graffitist", "Everest", "dexterity", "cavorting", "marauder", "conscience", "battlements", "deferential", "albatross", "khaki", "opalescent", "asphalt", "Yiddish", "talcum", "tranquilizer", "equestrian", "plaited", "monsieur", "manticore", "prestigious", "fraidycat", "guttural", "lo mein", "courier", "sans serif", "psyche", "stucco", "Frankenstein", "schema", "et cetera", "vidimus", "delphines", "lough", "archipelago", "serape", "puissance", "pinioning", "chignon", "pheromone", "galleon", "magnanimous", "chartreuse", "wainscoting", "Nehru", "gangly", "swaggering", "chimneys", "riveted", "plaid", "dirge", "zeal", "whittled", "depots", "fiberglass", "salvaged", "fissures", "enthusiastic", "discipline", "unfamiliar", "scurrying", "dignitaries", "pizzeria", "dismissal", "skittish", "careened", "nomination", "opportunist", "dictatorship", "comrades", "sporadic", "promenade", "repugnant", "invincible", "renowned", "parachute", "laborious", "appointment", "foreseeable", "ratify", "scalpel", "reclusive", "compassionate", "bulletin", "alfalfa", "officially", "crematorium", "bayonet", "amicable", "exuberant", "beautician", "equations", "assignment", "ultimatum", "whinnying", "squalor", "memoirs", "cylinders", "ominous", "muffler", "syndrome", "premises", "safari", "lasagna", "substantially", "mercantile", "formidable", "propaganda", "marquee", "proficient", "compunction", "emphatically", "hyperventilated", "ostracism", "onslaught", "ruefully", "misanthrope", "prototype", "cravenly", "mulberry", "hypocritical", "chlorine", "traumatic", "receipts", "solemnly", "begrudge", "contentious", "precocious", "ensemble", "cadre", "lye", "belfry", "lacrosse", "sluice", "cajolery", "vigilance", "residuals", "boutique", "peroxide", "aristocracy", "apocalypse", "tuberculosis", "barricade", "confreres", "anonymously", "unparalleled", "barrette", "chassis", "junket", "quandary", "Erie", "gingham", "silhouette", "auxiliary", "thesaurus", "patriarchs", "chandelier", "dulce", "concierge", "latticework", "hibiscus", "tamale", "maracas", "gyroplane", "burpees", "Adriatic", "piccolo", "au revoir", "tulle", "boll weevil", "camphor", "Tucson", "paparazzi", "pumpernickel", "pogrom", "bursitis", "patisserie", "cycads", "sarsaparilla", "maitre d'", "cannelloni", "boulangerie", "bronchitis", "Oswego", "diphtheria", "baklava", "corbels", "trebuchets", "Kilimanjaro", "fraulein", "protege", "hors d'oeuvres", "maquisards", "Aubusson", "Charolais"
+        ];
+
+        class SpellingApp {
+            constructor() {
+                this.allWords = words;
+                this.missedWords = this.loadMissedWords(); // Load FIRST before creating groups
+                console.log('App initialized with missed words:', [...this.missedWords]);
+                this.wordGroups = this.createWordGroups();
+                console.log('Created word groups:', this.wordGroups.map(g => ({id: g.id, name: g.name, wordCount: g.words.length})));
+                this.selectedGroups = [];
+                this.activeWords = [];
+                this.completedWords = new Set(); // Track words spelled correctly
+                this.totalWords = 0; // Total words in selected groups
+                this.wordPool = [];
+                this.currentWord = '';
+                this.correctCount = 0;
+                this.incorrectCount = 0;
+                this.wordStats = {}; // Track correct/incorrect per word
+                
+                this.setupGroupSelection();
+            }
+
+            loadMissedWords() {
+                try {
+                    const saved = localStorage.getItem('spellingBeeMissedWords');
+                    console.log('Loading missed words from localStorage:', saved);
+                    const missedSet = saved ? new Set(JSON.parse(saved)) : new Set();
+                    console.log('Loaded missed words:', [...missedSet]);
+                    return missedSet;
+                } catch (e) {
+                    console.error('Error loading missed words:', e);
+                    return new Set();
+                }
+            }
+
+            saveMissedWords() {
+                try {
+                    const missedArray = [...this.missedWords];
+                    console.log('Saving missed words to localStorage:', missedArray);
+                    localStorage.setItem('spellingBeeMissedWords', JSON.stringify(missedArray));
+                    
+                    // Verify it was saved
+                    const verification = localStorage.getItem('spellingBeeMissedWords');
+                    console.log('Verification - saved data:', verification);
+                } catch (e) {
+                    console.error('Error saving missed words:', e);
+                    alert('Unable to save missed words. Storage may be disabled in your browser settings.');
+                }
+            }
+
+            addMissedWord(word) {
+                const normalizedWord = word.toLowerCase();
+                console.log('Adding missed word:', normalizedWord);
+                this.missedWords.add(normalizedWord);
+                console.log('Current missed words:', [...this.missedWords]);
+                this.saveMissedWords();
+            }
+
+            clearMissedWords() {
+                console.log('Clearing all missed words');
+                this.missedWords.clear();
+                this.saveMissedWords();
+            }
+
+            createWordGroups() {
+                const groups = [];
+                const groupSize = 50;
+                
+                console.log('createWordGroups - missedWords size:', this.missedWords ? this.missedWords.size : 'undefined');
+                console.log('createWordGroups - missedWords content:', this.missedWords ? [...this.missedWords] : 'undefined');
+                
+                // Add missed words group if there are any
+                if (this.missedWords && this.missedWords.size > 0) {
+                    console.log('Creating missed words group with', this.missedWords.size, 'words');
+                    const missedWordsArray = [...this.missedWords].map(word => {
+                        // Find the original word with proper casing
+                        return this.allWords.find(w => w.toLowerCase() === word) || word;
+                    });
+                    
+                    console.log('Missed words array:', missedWordsArray);
+                    
+                    groups.push({
+                        id: 0,
+                        name: '⚠️ Missed Words',
+                        description: `${missedWordsArray.length} word${missedWordsArray.length !== 1 ? 's' : ''}`,
+                        words: missedWordsArray,
+                        isMissedWords: true
+                    });
+                } else {
+                    console.log('No missed words to create group for');
+                }
+                
+                // Add regular numbered groups
+                for (let i = 0; i < 9; i++) {
+                    const start = i * groupSize;
+                    const end = Math.min(start + groupSize, this.allWords.length);
+                    groups.push({
+                        id: i + 1,
+                        name: `Group ${i + 1}`,
+                        description: `Words ${start + 1}-${end}`,
+                        words: this.allWords.slice(start, end)
+                    });
+                }
+                
+                console.log('Total groups created:', groups.length);
+                return groups;
+            }
+
+            setupGroupSelection() {
+                const gridDiv = document.getElementById('groupsGrid');
+                gridDiv.innerHTML = ''; // Clear existing groups
+                
+                this.wordGroups.forEach(group => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = `group-checkbox ${group.isMissedWords ? 'missed-words' : ''}`;
+                    
+                    const content = `
+                        <input type="checkbox" id="group${group.id}" data-group-id="${group.id}">
+                        <div style="flex: 1;">
+                            <div class="group-label">${group.name}</div>
+                            <div class="group-description">${group.description}</div>
+                        </div>
+                        ${group.isMissedWords ? '<button class="clear-missed-btn" id="clearMissedBtn">Clear</button>' : ''}
+                    `;
+                    groupDiv.innerHTML = content;
+                    
+                    const checkbox = groupDiv.querySelector('input');
+                    checkbox.addEventListener('change', () => this.handleGroupToggle(group.id, checkbox.checked));
+                    
+                    // Handle clicking on the div (but not the clear button)
+                    groupDiv.addEventListener('click', (e) => {
+                        if (e.target !== checkbox && !e.target.classList.contains('clear-missed-btn')) {
+                            checkbox.checked = !checkbox.checked;
+                            checkbox.dispatchEvent(new Event('change'));
+                        }
+                    });
+                    
+                    // Handle clear button for missed words
+                    if (group.isMissedWords) {
+                        const clearBtn = groupDiv.querySelector('#clearMissedBtn');
+                        clearBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (confirm('Clear all missed words? This cannot be undone.')) {
+                                this.clearMissedWords();
+                                this.wordGroups = this.createWordGroups();
+                                this.setupGroupSelection();
+                            }
+                        });
+                    }
+                    
+                    gridDiv.appendChild(groupDiv);
+                });
+
+                document.getElementById('selectAllBtn').addEventListener('click', () => this.selectAllGroups());
+                document.getElementById('selectNoneBtn').addEventListener('click', () => this.selectNoneGroups());
+                document.getElementById('goBtn').addEventListener('click', () => this.startPractice());
+            }
+
+            handleGroupToggle(groupId, isChecked) {
+                const groupDiv = document.querySelector(`#group${groupId}`).closest('.group-checkbox');
+                
+                // Play checkbox sound
+                this.playCheckboxSound(isChecked);
+                
+                if (isChecked) {
+                    if (!this.selectedGroups.includes(groupId)) {
+                        this.selectedGroups.push(groupId);
+                    }
+                    groupDiv.classList.add('selected');
+                } else {
+                    this.selectedGroups = this.selectedGroups.filter(id => id !== groupId);
+                    groupDiv.classList.remove('selected');
+                }
+
+                // Enable/disable Go button
+                document.getElementById('goBtn').disabled = this.selectedGroups.length === 0;
+            }
+
+            selectAllGroups() {
+                this.wordGroups.forEach(group => {
+                    const checkbox = document.getElementById(`group${group.id}`);
+                    if (!checkbox.checked) {
+                        checkbox.checked = true;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            selectNoneGroups() {
+                this.wordGroups.forEach(group => {
+                    const checkbox = document.getElementById(`group${group.id}`);
+                    if (checkbox.checked) {
+                        checkbox.checked = false;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            startPractice() {
+                // Collect words from selected groups
+                this.activeWords = [];
+                this.selectedGroups.forEach(groupId => {
+                    const group = this.wordGroups.find(g => g.id === groupId);
+                    if (group) {
+                        this.activeWords.push(...group.words);
+                    }
+                });
+
+                this.totalWords = this.activeWords.length;
+                this.updateProgressDisplay();
+
+                // Initialize word stats for active words
+                this.initializeWordPool();
+
+                // Hide group selection, show practice view
+                document.getElementById('groupSelectionView').classList.add('hidden');
+                document.getElementById('practiceView').classList.remove('hidden');
+
+                // Set up event listeners and start
+                this.setupEventListeners();
+                setTimeout(() => this.nextWord(), 500);
+            }
+
+            updateProgressDisplay() {
+                document.getElementById('progressCount').textContent = `${this.completedWords.size}/${this.totalWords}`;
+            }
+
+            initializeWordPool() {
+                // Initialize all active words with neutral weight
+                this.activeWords.forEach(word => {
+                    this.wordStats[word.toLowerCase()] = {
+                        correct: 0,
+                        incorrect: 0,
+                        weight: 1
+                    };
+                });
+            }
+
+            getWeightedRandomWord() {
+                // Filter out completed words
+                const availableWords = Object.keys(this.wordStats).filter(word => !this.completedWords.has(word));
+                
+                if (availableWords.length === 0) {
+                    // All words completed! Could show a completion message
+                    return null;
+                }
+                
+                // Create weighted pool from available words only
+                const weightedPool = [];
+                
+                for (let word of availableWords) {
+                    const stats = this.wordStats[word];
+                    // Weight increases with incorrect answers, decreases with correct
+                    const weight = Math.max(1, stats.weight + stats.incorrect - (stats.correct * 0.5));
+                    
+                    for (let i = 0; i < Math.ceil(weight); i++) {
+                        weightedPool.push(word);
+                    }
+                }
+
+                return weightedPool[Math.floor(Math.random() * weightedPool.length)];
+            }
+
+            nextWord() {
+                this.currentWord = this.getWeightedRandomWord();
+                
+                // Check if all words are completed
+                if (this.currentWord === null) {
+                    this.showCompletionCelebration();
+                    return;
+                }
+                
+                document.getElementById('answerInput').value = '';
+                
+                // Show practice view, hide results view
+                document.getElementById('practiceView').classList.remove('hidden');
+                document.getElementById('resultsView').classList.add('hidden');
+                
+                // Hide speaker, definition buttons, input, and check button initially
+                const speakBtn = document.getElementById('speakBtn');
+                const defineBtn = document.getElementById('defineBtn');
+                const inputContainer = document.getElementById('inputContainer');
+                const buttonsContainer = document.getElementById('buttonsContainer');
+                
+                speakBtn.classList.add('hidden-initial');
+                defineBtn.classList.add('hidden-initial');
+                inputContainer.classList.add('hidden-initial');
+                buttonsContainer.classList.add('hidden-initial');
+                
+                // Auto-speak after 1 second, then show all controls
+                setTimeout(() => {
+                    this.speakWord();
+                    // Show all controls after speaking
+                    setTimeout(() => {
+                        speakBtn.classList.remove('hidden-initial');
+                        defineBtn.classList.remove('hidden-initial');
+                        inputContainer.classList.remove('hidden-initial');
+                        buttonsContainer.classList.remove('hidden-initial');
+                        document.getElementById('answerInput').focus();
+                    }, 500);
+                }, 1000);
+            }
+
+            showCompletionCelebration() {
+                // Hide practice and results views
+                document.getElementById('practiceView').classList.add('hidden');
+                document.getElementById('resultsView').classList.add('hidden');
+                
+                // Show celebration message in the container
+                const container = document.querySelector('.container');
+                const celebrationDiv = document.createElement('div');
+                celebrationDiv.className = 'completion-message';
+                celebrationDiv.innerHTML = `
+                    <div class="completion-title">🎉 🏆 🎊</div>
+                    <div class="completion-text">Amazing Work!</div>
+                    <div class="completion-subtext">You've mastered all the words in this group!</div>
+                `;
+                
+                // Temporarily add celebration to container
+                const practiceView = document.getElementById('practiceView');
+                practiceView.parentNode.insertBefore(celebrationDiv, practiceView);
+                
+                // After 3 seconds, return to group selection
+                setTimeout(() => {
+                    celebrationDiv.remove();
+                    
+                    // Refresh word groups (in case missed words were added)
+                    this.wordGroups = this.createWordGroups();
+                    this.setupGroupSelection();
+                    
+                    document.getElementById('groupSelectionView').classList.remove('hidden');
+                    
+                    // Reset for next session
+                    this.completedWords.clear();
+                    this.correctCount = 0;
+                    this.incorrectCount = 0;
+                }, 3000);
+            }
+
+            animateUserAnswer(userAnswer, correctAnswer) {
+                const yourAnswerDiv = document.getElementById('yourAnswer');
+                
+                // Create a container that will hold all letters with fixed width
+                const wordContainer = document.createElement('div');
+                wordContainer.className = 'word-container';
+                
+                // Pre-calculate the width by creating invisible placeholder letters
+                const maxLength = Math.max(userAnswer.length, correctAnswer.length);
+                const tempSpan = document.createElement('span');
+                tempSpan.className = 'letter';
+                tempSpan.style.visibility = 'hidden';
+                tempSpan.textContent = 'W'; // Use wide letter for measurement
+                document.body.appendChild(tempSpan);
+                const letterWidth = tempSpan.offsetWidth + 4; // 4 for margins
+                document.body.removeChild(tempSpan);
+                
+                wordContainer.style.width = `${maxLength * letterWidth}px`;
+                yourAnswerDiv.innerHTML = '';
+                yourAnswerDiv.appendChild(wordContainer);
+                
+                let index = 0;
+                const userLower = userAnswer.toLowerCase();
+                const correctLower = correctAnswer.toLowerCase();
+                let stinkerPlayed = false;
+                
+                const animateNextLetter = () => {
+                    if (index >= userAnswer.length) {
+                        // If user typed fewer letters than needed, show missing indicators
+                        if (userAnswer.length < correctAnswer.length) {
+                            for (let i = userAnswer.length; i < correctAnswer.length; i++) {
+                                const letterSpan = document.createElement('span');
+                                letterSpan.className = 'letter missing-letter';
+                                letterSpan.textContent = '*';
+                                wordContainer.appendChild(letterSpan);
+                            }
+                        }
+                        return;
+                    }
+                    
+                    const letter = userAnswer[index];
+                    const isCorrect = index < correctLower.length && userLower[index] === correctLower[index];
+                    
+                    const letterSpan = document.createElement('span');
+                    letterSpan.className = `letter ${isCorrect ? 'correct-letter' : 'incorrect-letter'}`;
+                    letterSpan.textContent = letter;
+                    wordContainer.appendChild(letterSpan);
+                    
+                    if (isCorrect) {
+                        this.playTypingSound();
+                        index++;
+                        setTimeout(animateNextLetter, 200); // Reduced from 250ms to 200ms
+                    } else {
+                        // Play stinker sound when first mistake is revealed
+                        if (!stinkerPlayed) {
+                            this.playStinkerSound();
+                            stinkerPlayed = true;
+                        }
+                        index++;
+                        
+                        // Display rest of user's typed letters immediately
+                        while (index < userAnswer.length) {
+                            const remainingLetter = userAnswer[index];
+                            const remainingIsCorrect = index < correctLower.length && userLower[index] === correctLower[index];
+                            const remainingSpan = document.createElement('span');
+                            remainingSpan.className = `letter ${remainingIsCorrect ? 'correct-letter' : 'incorrect-letter'}`;
+                            remainingSpan.textContent = remainingLetter;
+                            wordContainer.appendChild(remainingSpan);
+                            index++;
+                        }
+                        
+                        // Show missing letter indicators if user didn't type enough
+                        if (userAnswer.length < correctAnswer.length) {
+                            for (let i = userAnswer.length; i < correctAnswer.length; i++) {
+                                const letterSpan = document.createElement('span');
+                                letterSpan.className = 'letter missing-letter';
+                                letterSpan.textContent = '*';
+                                wordContainer.appendChild(letterSpan);
+                            }
+                        }
+                    }
+                };
+                
+                setTimeout(animateNextLetter, 200); // Reduced from 250ms to 200ms
+            }
+
+            animateCorrectAnswer(correctAnswer) {
+                const correctAnswerDiv = document.getElementById('correctAnswer');
+                
+                // Create a container that will hold all letters with fixed width
+                const wordContainer = document.createElement('div');
+                wordContainer.className = 'word-container';
+                
+                // Pre-calculate the width
+                const tempSpan = document.createElement('span');
+                tempSpan.className = 'letter';
+                tempSpan.style.visibility = 'hidden';
+                tempSpan.textContent = 'W';
+                document.body.appendChild(tempSpan);
+                const letterWidth = tempSpan.offsetWidth + 4;
+                document.body.removeChild(tempSpan);
+                
+                wordContainer.style.width = `${correctAnswer.length * letterWidth}px`;
+                correctAnswerDiv.innerHTML = '';
+                correctAnswerDiv.appendChild(wordContainer);
+                
+                let index = 0;
+                
+                const animateNextLetter = () => {
+                    if (index >= correctAnswer.length) {
+                        return;
+                    }
+                    
+                    const letter = correctAnswer[index];
+                    
+                    const letterSpan = document.createElement('span');
+                    letterSpan.className = 'letter correct-letter';
+                    letterSpan.textContent = letter;
+                    wordContainer.appendChild(letterSpan);
+                    
+                    this.playTypingSound();
+                    index++;
+                    setTimeout(animateNextLetter, 200); // Reduced from 250ms to 200ms
+                };
+                
+                setTimeout(animateNextLetter, 200); // Reduced from 250ms to 200ms
+            }
+
+            showResults(userAnswer, isCorrect) {
+                // Hide practice view, show results view
+                document.getElementById('practiceView').classList.add('hidden');
+                document.getElementById('resultsView').classList.remove('hidden');
+
+                // Hide correct answer and label initially
+                const correctAnswerDiv = document.getElementById('correctAnswer');
+                const correctLabel = document.getElementById('correctLabel');
+                const resultsTitle = document.getElementById('resultsTitle');
+                
+                correctAnswerDiv.classList.add('hidden-initial');
+                correctAnswerDiv.classList.remove('show');
+                correctLabel.style.opacity = '0';
+                
+                // Keep results title hidden - not displaying Correct/Incorrect text
+                resultsTitle.style.opacity = '0';
+                resultsTitle.textContent = '';
+                
+                // Hide next word button
+                document.getElementById('nextWordBtn').classList.add('hidden');
+                
+                // Animate user's answer letter by letter
+                this.animateUserAnswer(userAnswer, this.currentWord);
+
+                // Calculate when user animation will finish
+                const userLower = userAnswer.toLowerCase();
+                const correctLower = this.currentWord.toLowerCase();
+                let correctLettersCount = 0;
+                for (let i = 0; i < userAnswer.length; i++) {
+                    if (i < correctLower.length && userLower[i] === correctLower[i]) {
+                        correctLettersCount++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                // User animation finishes instantly after first wrong letter (or all letters if correct)
+                const userAnimationDuration = 200 + (correctLettersCount * 200);
+                
+                // Show and animate correct answer after user's answer is fully displayed
+                setTimeout(() => {
+                    correctLabel.style.opacity = '1';
+                    correctLabel.style.transition = 'opacity 0.3s';
+                    correctAnswerDiv.classList.remove('hidden-initial');
+                    correctAnswerDiv.classList.add('show');
+                    this.animateCorrectAnswer(this.currentWord);
+                }, userAnimationDuration + 500);
+                
+                // Calculate total animation time (user + correct answer)
+                const correctAnswerAnimationDuration = 200 + (this.currentWord.length * 200);
+                const totalAnimationDuration = userAnimationDuration + 500 + correctAnswerAnimationDuration;
+                
+                // Wait 0.25 seconds after animations before updating counts
+                setTimeout(() => {
+                    if (isCorrect) {
+                        this.playCorrectSound();
+                        // Pulse correct count
+                        const correctSpan = document.getElementById('correctCount').parentElement;
+                        correctSpan.classList.add('pulse');
+                        setTimeout(() => correctSpan.classList.remove('pulse'), 400);
+                    } else {
+                        // Play sound for incorrect counter increment
+                        this.playIncorrectSound();
+                        // Pulse incorrect count
+                        const incorrectSpan = document.getElementById('incorrectCount').parentElement;
+                        incorrectSpan.classList.add('pulse');
+                        setTimeout(() => incorrectSpan.classList.remove('pulse'), 400);
+                    }
+                    
+                    // Update counts (including progress) all at once
+                    document.getElementById('correctCount').textContent = this.correctCount;
+                    document.getElementById('incorrectCount').textContent = this.incorrectCount;
+                    this.updateProgressDisplay();
+                    
+                    // Show next word button after a brief delay to let counters finish pulsing
+                    setTimeout(() => {
+                        document.getElementById('nextWordBtn').classList.remove('hidden');
+                    }, 450);
+                }, totalAnimationDuration + 250);
+            }
+
+            speakWord() {
+                const utterance = new SpeechSynthesisUtterance(this.currentWord);
+                utterance.rate = 0.8;
+                utterance.pitch = 1;
+                speechSynthesis.cancel(); // Stop any ongoing speech
+                speechSynthesis.speak(utterance);
+            }
+
+            playCorrectSound() {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Happy ascending notes
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.4);
+            }
+
+            playTypingSound() {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Quick typing click sound
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                
+                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.05);
+            }
+
+            playIncorrectSound() {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Gentle descending notes (not harsh)
+                oscillator.frequency.setValueAtTime(392.00, audioContext.currentTime); // G
+                oscillator.frequency.setValueAtTime(329.63, audioContext.currentTime + 0.15); // E
+                
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            }
+
+            playStinkerSound() {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Sad trombone-ish sound - descending wobbly tone
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.5);
+                
+                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+
+            playCheckboxSound(isChecked) {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Higher pitch for check, lower for uncheck
+                if (isChecked) {
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                } else {
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                }
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            }
+
+            async getDefinition() {
+                try {
+                    // Show loading feedback
+                    const defineBtn = document.getElementById('defineBtn');
+                    defineBtn.textContent = '⏳';
+                    
+                    // Try the Free Dictionary API first
+                    let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(this.currentWord)}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        defineBtn.textContent = '📖';
+                        
+                        if (data && data.length > 0 && data[0].meanings && data[0].meanings.length > 0) {
+                            const meaning = data[0].meanings[0];
+                            const definition = meaning.definitions[0].definition;
+                            const partOfSpeech = meaning.partOfSpeech;
+                            
+                            this.speakText(`${this.currentWord}. ${partOfSpeech}. ${definition}`);
+                            return;
+                        }
+                    }
+                    
+                    // Fallback: try Wikipedia API
+                    response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(this.currentWord)}`);
+                    
+                    defineBtn.textContent = '📖';
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.extract) {
+                            // Get first sentence
+                            const firstSentence = data.extract.split('.')[0] + '.';
+                            this.speakText(`${this.currentWord}. ${firstSentence}`);
+                            return;
+                        }
+                    }
+                    
+                    // If all else fails
+                    this.speakText(`I don't have a definition for ${this.currentWord} right now, but keep practicing your spelling!`);
+                    
+                } catch (error) {
+                    console.error('Definition error:', error);
+                    document.getElementById('defineBtn').textContent = '📖';
+                    this.speakText(`Sorry, I couldn't get the definition right now. But keep practicing!`);
+                }
+            }
+
+            speakText(text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.85;
+                utterance.pitch = 1;
+                speechSynthesis.cancel();
+                speechSynthesis.speak(utterance);
+            }
+
+            checkAnswer() {
+                const userAnswer = document.getElementById('answerInput').value.trim();
+                const correctAnswer = this.currentWord.toLowerCase();
+
+                if (!userAnswer) {
+                    return; // Don't check empty answers
+                }
+
+                if (userAnswer.toLowerCase() === correctAnswer) {
+                    this.correctCount++;
+                    this.wordStats[correctAnswer].correct++;
+                    this.wordStats[correctAnswer].weight = Math.max(0.5, this.wordStats[correctAnswer].weight - 0.5);
+                    
+                    // Mark word as completed
+                    this.completedWords.add(correctAnswer);
+                    // Progress will be updated in showResults
+                    
+                    this.showResults(userAnswer, true);
+                } else {
+                    this.incorrectCount++;
+                    this.wordStats[correctAnswer].incorrect++;
+                    this.wordStats[correctAnswer].weight += 2;
+                    
+                    // Add to missed words
+                    this.addMissedWord(this.currentWord);
+                    
+                    this.showResults(userAnswer, false);
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('speakBtn').addEventListener('click', () => this.speakWord());
+                document.getElementById('defineBtn').addEventListener('click', () => this.getDefinition());
+                document.getElementById('checkBtn').addEventListener('click', () => this.checkAnswer());
+                document.getElementById('nextWordBtn').addEventListener('click', () => this.nextWord());
+                
+                document.getElementById('answerInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.checkAnswer();
+                    }
+                });
+            }
+        }
+
+        // Initialize the app
+        const app = new SpellingApp();
+    </script>
+</body>
+</html>

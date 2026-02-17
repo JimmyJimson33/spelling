@@ -433,6 +433,18 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Make buttons smaller on mobile screens */
+        @media (max-width: 600px) {
+            .speak-btn, .define-btn, .mic-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+                margin: 0 5px;
+            }
         }
 
         .correct-answer.hidden-initial {
@@ -450,7 +462,6 @@
         .input-container {
             margin: 30px 0;
             transition: opacity 0.3s;
-            position: relative;
         }
 
         .input-container.hidden-initial {
@@ -458,28 +469,47 @@
             pointer-events: none;
         }
 
-        .mic-btn {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
+        .speak-btn, .define-btn, .mic-btn {
             background: #667eea;
             color: white;
             border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
+            width: 80px;
+            height: 80px;
+            font-size: 40px;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin: 0 10px;
         }
 
-        .mic-btn:hover {
+        .speak-btn.hidden-initial, .define-btn.hidden-initial, .mic-btn.hidden-initial {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .define-btn {
+            background: #10b981;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .mic-btn {
+            background: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .speak-btn:hover, .mic-btn:hover {
+            transform: scale(1.1);
             background: #764ba2;
-            transform: translateY(-50%) scale(1.1);
+        }
+
+        .define-btn:hover {
+            transform: scale(1.1);
+            background: #059669;
+        }
+
+        .speak-btn:active, .define-btn:active, .mic-btn:active {
+            transform: scale(0.95);
         }
 
         .mic-btn.listening {
@@ -649,6 +679,7 @@
                 <div class="button-group">
                     <button class="speak-btn hidden-initial" id="speakBtn" title="Click to hear the word">🔊</button>
                     <button class="define-btn hidden-initial" id="defineBtn" title="Click to hear the definition">📖</button>
+                    <button class="mic-btn hidden-initial" id="micBtn" title="Microphone listening">🎤</button>
                 </div>
                 <div class="word-info">Click 🔊 to hear the word or 📖 for the definition!</div>
             </div>
@@ -661,7 +692,6 @@
                     autocomplete="off"
                     spellcheck="false"
                 >
-                <button class="mic-btn" id="micBtn" title="Click to speak your answer">🎤</button>
             </div>
 
             <div class="buttons hidden-initial" id="buttonsContainer">
@@ -1121,11 +1151,13 @@
                 // Hide speaker, definition buttons, input, and check button initially
                 const speakBtn = document.getElementById('speakBtn');
                 const defineBtn = document.getElementById('defineBtn');
+                const micBtn = document.getElementById('micBtn');
                 const inputContainer = document.getElementById('inputContainer');
                 const buttonsContainer = document.getElementById('buttonsContainer');
                 
                 speakBtn.classList.add('hidden-initial');
                 defineBtn.classList.add('hidden-initial');
+                micBtn.classList.add('hidden-initial');
                 inputContainer.classList.add('hidden-initial');
                 buttonsContainer.classList.add('hidden-initial');
                 
@@ -1136,6 +1168,7 @@
                     setTimeout(() => {
                         speakBtn.classList.remove('hidden-initial');
                         defineBtn.classList.remove('hidden-initial');
+                        micBtn.classList.remove('hidden-initial');
                         inputContainer.classList.remove('hidden-initial');
                         buttonsContainer.classList.remove('hidden-initial');
                         document.getElementById('answerInput').focus();
